@@ -8,6 +8,14 @@ namespace JDEUtils.Types
 {
     public class LoginRequest
     {
+        public LoginRequest(string username, string password, string deviceName, string environment, string role)
+        {
+            this.username = username;
+            this.password = password;
+            this.deviceName = deviceName;
+            this.environment = environment;
+            this.role = role;
+        }
         public string username { get; set; }
         public string password { get; set; }
         public string deviceName { get; set; }

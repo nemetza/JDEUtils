@@ -12,27 +12,63 @@ namespace JDEUtils.Logic
 {
     public class JDEUtil
     {
-        private string JdeAisUrl = "http://vs05web:91/jderest/"; 
-        private LoginResponse lastResponse = null;  //Token we get from JDE. Store
+        private string JdeAisUrl = ""; 
+        private string lastReponseJSON = "";
+
+        private LoginRequest loginRequest;    //Last login's request. Deicename is needed for FormService
+        private LoginResponse loginResponse;  //Token we get from JDE. Token needed for FormService
+
         public JDEUtil(string url)
         {
-            JdeAisUrl = url;
+            JdeAisUrl     = url ?? "http://vs05web:91/jderest/";
+            loginRequest  = null;
+            loginResponse = null;
         }
 
-        public bool tokenRequest(LoginRequest loginData)
+
+        #region JDE REST API caller functions
+
+        /// <summary>
+        ///  JDE login caller function over REST API.
+        /// </summary>
+        /// <param name="loginRequestData"></param>
+        /// <returns></returns>
+        public void TokenRequest(string username, string password, string deviceName, string environment, string role = "*ALL")
         {
-            try
-            {
-                string jsonDataToSend = generateJSONfromClass(loginData);
-                string reponseJsonData = sendJsonAndReturnJsonRespose(jsonDataToSend, "tokenrequest");
-                lastResponse = generateClassFromJSON<LoginResponse>(reponseJsonData);
-            }
-            catch (Exception ex)
-            {
+            loginRequest = new LoginRequest(username, password, deviceName, environment, role);
 
-            }
-            return false;
+            string jsonDataToSend = generateJSONfromClass(loginRequest);
+            string reponseJsonData = sendJsonAndReturnJsonRespose(jsonDataToSend, "tokenrequest");
+            loginResponse = generateClassFromJSON<LoginResponse>(reponseJsonData);
         }
+
+        /// <summary>
+        ///  JDE Form caller function over REST API. Response is unique so only JSON string is returned
+        /// </summary>
+        /// <param name="formServiceData"></param>
+        /// <returns>JSON string. Caller must use generateClassFromJSON to read its value</returns>
+        public T FormService<T>(FormserviceRequest formServiceData)
+        {
+            formServiceData.token = loginResponse.userInfo.token;
+            formServiceData.deviceName = loginRequest.deviceName;
+            //formServiceData.jasserver = JdeAisUrl;  //Kell ez? Ez a 81-es port-ra mutat, de mi nem hasznalunk AIS-t csak REST-et, nem?  TODO
+
+            string jsonDataToSend = generateJSONfromClass(formServiceData);
+            lastReponseJSON = sendJsonAndReturnJsonRespose(jsonDataToSend, "formservice");
+            return generateClassFromJSON<T>(lastReponseJSON);
+        }
+
+        /// <summary>
+        /// Return the last JSON response. May be it is needed somewhere outside too.
+        /// </summary>
+        /// <returns></returns>
+        public string GetLastJsonResponse()
+        {
+            return lastReponseJSON;
+        }
+        #endregion
+
+        #region Functions for communicating
 
         private string generateJSONfromClass<T>(T input)
         {
@@ -41,11 +77,11 @@ namespace JDEUtils.Logic
             return JsonSerializer.Serialize(input, options);
         }
 
-        private T generateClassFromJSON<T>(string jsonReceived)
+        public T generateClassFromJSON<T>(string jsonReceived)
         {
             if (jsonReceived != null)
             {
-                T? result =JsonSerializer.Deserialize<T>(jsonReceived);
+                return (T)JsonSerializer.Deserialize<T>(jsonReceived);
             }
 
             return default(T);
@@ -71,5 +107,7 @@ namespace JDEUtils.Logic
 
             return result;
         }
+
+        #endregion
     }
 }
