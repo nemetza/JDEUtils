@@ -7,19 +7,20 @@ namespace JDEUtils.Logic
 {
     public class JDEUtil
     {
-        private string JdeAisUrl = ""; 
+        private string JdeAisUrl = "";
+        private string JdeEnvironment = "";
         private string lastReponseJSON = "";
 
         private LoginRequest loginRequest;    //Last login's request. Devicename is needed for FormService
         private LoginResponse loginResponse;  //Token we get from JDE. Token needed for FormService
 
-        public JDEUtil(string url)
+        public JDEUtil()
         {
-            JdeAisUrl     = url ?? "http://vs05web:91/jderest/";
+            JdeAisUrl = "";
+            JdeEnvironment = "";
             loginRequest  = null;
             loginResponse = null;
         }
-
 
         #region JDE REST API caller functions
 
@@ -28,8 +29,10 @@ namespace JDEUtils.Logic
         /// </summary>
         /// <param name="loginRequestData"></param>
         /// <returns></returns>
-        public void TokenRequest(string username, string password, string deviceName, string environment, string role = "*ALL")
+        public void TokenRequest(string username, string password, string deviceName, string jdeAisUrl, string environment, string role = "*ALL")
         {
+            JdeAisUrl = jdeAisUrl;
+            JdeEnvironment = environment;
             loginRequest = new LoginRequest(username, password, deviceName, environment, role);
 
             string jsonDataToSend = generateJSONfromClass(loginRequest);
