@@ -1,12 +1,7 @@
 ﻿using JDEUtils.Types;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace JDEUtils.Logic
 {
@@ -15,7 +10,7 @@ namespace JDEUtils.Logic
         private string JdeAisUrl = ""; 
         private string lastReponseJSON = "";
 
-        private LoginRequest loginRequest;    //Last login's request. Deicename is needed for FormService
+        private LoginRequest loginRequest;    //Last login's request. Devicename is needed for FormService
         private LoginResponse loginResponse;  //Token we get from JDE. Token needed for FormService
 
         public JDEUtil(string url)
@@ -81,7 +76,7 @@ namespace JDEUtils.Logic
         {
             if (jsonReceived != null)
             {
-                return (T)JsonSerializer.Deserialize<T>(jsonReceived);
+                return (T)JsonSerializer.Deserialize<T>(jsonReceived, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString |System.Text.Json.Serialization.JsonNumberHandling.WriteAsString });
             }
 
             return default(T);
