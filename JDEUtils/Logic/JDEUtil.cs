@@ -1,26 +1,30 @@
 ﻿using JDEUtils.Types;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace JDEUtils.Logic
 {
     public class JDEUtil
     {
-        private string JdeAisUrl = "";
-        private string JdeEnvironment = "";
+        private string JdeAisUrl = ""; 
         private string lastReponseJSON = "";
 
-        private LoginRequest loginRequest;    //Last login's request. Devicename is needed for FormService
+        private LoginRequest loginRequest;    //Last login's request. Deicename is needed for FormService
         private LoginResponse loginResponse;  //Token we get from JDE. Token needed for FormService
 
-        public JDEUtil()
+        public JDEUtil(string url)
         {
-            JdeAisUrl = "";
-            JdeEnvironment = "";
+            JdeAisUrl     = url ?? "http://vs05web:91/jderest/";
             loginRequest  = null;
             loginResponse = null;
         }
+
 
         #region JDE REST API caller functions
 
@@ -29,10 +33,8 @@ namespace JDEUtils.Logic
         /// </summary>
         /// <param name="loginRequestData"></param>
         /// <returns></returns>
-        public void TokenRequest(string username, string password, string deviceName, string jdeAisUrl, string environment, string role = "*ALL")
+        public void TokenRequest(string username, string password, string deviceName, string environment, string role = "*ALL")
         {
-            JdeAisUrl = jdeAisUrl;
-            JdeEnvironment = environment;
             loginRequest = new LoginRequest(username, password, deviceName, environment, role);
 
             string jsonDataToSend = generateJSONfromClass(loginRequest);
@@ -49,7 +51,6 @@ namespace JDEUtils.Logic
         {
             formServiceData.token = loginResponse.userInfo.token;
             formServiceData.deviceName = loginRequest.deviceName;
-            formServiceData.environment = JdeEnvironment;
             //formServiceData.jasserver = JdeAisUrl;  //Kell ez? Ez a 81-es port-ra mutat, de mi nem hasznalunk AIS-t csak REST-et, nem?  TODO
 
             string jsonDataToSend = generateJSONfromClass(formServiceData);
@@ -80,7 +81,7 @@ namespace JDEUtils.Logic
         {
             if (jsonReceived != null)
             {
-                return (T)JsonSerializer.Deserialize<T>(jsonReceived, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString |System.Text.Json.Serialization.JsonNumberHandling.WriteAsString });
+                return (T)JsonSerializer.Deserialize<T>(jsonReceived);
             }
 
             return default(T);
