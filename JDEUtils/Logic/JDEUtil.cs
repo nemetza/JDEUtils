@@ -14,12 +14,15 @@ namespace JDEUtils.Logic
         private LoginRequest loginRequest;    //Last login's request. Devicename is needed for FormService
         private LoginResponse loginResponse;  //Token we get from JDE. Token needed for FormService
 
+        public bool LoggedIn;
+
         public JDEUtil()
         {
             JdeAisUrl = "";
             JdeEnvironment = "";
             loginRequest  = null;
             loginResponse = null;
+            LoggedIn = false;
         }
 
         #region JDE REST API caller functions
@@ -38,6 +41,15 @@ namespace JDEUtils.Logic
             string jsonDataToSend = generateJSONfromClass(loginRequest);
             string reponseJsonData = sendJsonAndReturnJsonRespose(jsonDataToSend, "tokenrequest");
             loginResponse = generateClassFromJSON<LoginResponse>(reponseJsonData);
+
+            if (loginResponse.userInfo.token.Length > 0)
+            {
+                LoggedIn = true;
+            }
+            else
+            {
+                LoggedIn = false;
+            }
         }
 
         /// <summary>
